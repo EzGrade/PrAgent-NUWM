@@ -24,4 +24,4 @@ jobs:
       - name: Run PR Review Script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python review_script.py
+        run: python src/runner.py

@@ -20,8 +20,9 @@ class AiRequest:
         Get response from OpenAI
         :return response: OpenAI response
         """
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.model,
-            messages=self.context
+            messages=self.context,
+            stream=False
         )
-        return response.choices[0].message
+        return response.choices[0].message.content

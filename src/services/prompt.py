@@ -1,11 +1,13 @@
 from typing import Dict, List, Optional
 
+from config import PROMPT
+
 
 class PromptGenerator:
     def __init__(
             self,
-            system_prompt: str,
-            context_prompt: Dict[str, str],
+            system_prompt: str = PROMPT,
+            context_prompt: Dict[str, str] = None,
     ):
         """
         :param system_prompt: Plain text prompt for the system
@@ -26,14 +28,15 @@ class PromptGenerator:
 
         system_prompt_message: Dict[str, str] = {
             "role": "system",
-            "message": self.system_prompt,
+            "content": self.system_prompt,
         }
         messages.append(system_prompt_message)
 
         for file_name, file_content in self.context_prompt.items():
+            content = f"File: {file_name}\n{file_content}"
             context_prompt_message: Dict[str, str] = {
                 "role": "user",
-                "message": file_content,
+                "content": content,
             }
             messages.append(context_prompt_message)
 
