@@ -16,6 +16,7 @@ def run(
         context_prompt=files
     )
     context = prompt_client.get_prompt()
+    print(context)
 
     ai_client = ai.AiRequest(
         context=context
