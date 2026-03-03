@@ -1,7 +1,7 @@
 from utils.environment import get_env_var
 
-GITHUB_PRIVATE_KEY = get_env_var("GITHUB_PRIVATE_KEY")
-GITHUB_APP_ID = int(get_env_var("GITHUB_APP_ID"))
+GITHUB_PRIVATE_KEY = get_env_var("PRIVATE_KEY")
+GITHUB_APP_ID = int(get_env_var("APP_ID"))
 if GITHUB_PRIVATE_KEY.endswith(".pem"):
     GITHUB_PRIVATE_KEY = open(GITHUB_PRIVATE_KEY, "r").read()
 
