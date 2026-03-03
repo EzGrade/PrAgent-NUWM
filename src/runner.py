@@ -16,14 +16,13 @@ def run(
         context_prompt=files
     )
     context = prompt_client.get_prompt()
-    print(context)
 
     ai_client = ai.AiRequest(
         context=context
     )
     response = ai_client.get_response()
 
-    git_client.leave_comment_on_pr(
+    comment_response = git_client.leave_comment_on_pr(
         comment=response
     )
     return True

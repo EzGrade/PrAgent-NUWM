@@ -102,8 +102,7 @@ class GitHub:
             pull_number = self.get_last_pr_number()
 
         pr = self.repository.get_pull(pull_number)
-        pr.create_issue_comment(comment)
-        return True
+        return pr.create_issue_comment(comment)
 
 
 if __name__ == "__main__":
