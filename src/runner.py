@@ -1,3 +1,4 @@
+from config import GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME
 from services import git, ai, prompt
 
 
@@ -30,6 +31,6 @@ def run(
 
 if __name__ == "__main__":
     run(
-        owner="PullPal-Tester",
-        repository="PullTestRepo"
+        owner=GITHUB_REPOSITORY_OWNER,
+        repository=GITHUB_REPOSITORY_NAME
     )
