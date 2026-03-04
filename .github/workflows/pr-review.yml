@@ -5,21 +5,13 @@ on:
     types: [ opened, synchronize, reopened ]
 
 jobs:
-  review:
+  pr_agent_job:
     runs-on: ubuntu-latest
+    name: Run pr agent on every pull request
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: PR Agent action step
+        id: pragent
+        uses: EzGrade/Pr-Agent-NUWM@main
 
       - name: Run PR Review Script
         env:
