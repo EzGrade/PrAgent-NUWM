@@ -39,8 +39,7 @@ class GitHub:
             installation_id=self.installation_id,
         )
 
-        self.organization = self.client.get_organization(self.owner)
-        self.repository = self.organization.get_repo(self.repo)
+        self.repository = self.get_repo(f"{owner}/{repo}")
 
     def get_installation_id(
             self,
@@ -50,26 +49,20 @@ class GitHub:
         :return id: installation id
         """
         installations = self.app_client.get_installations()
-
         for installation in installations:
-            repo = paginator_to_list(installation.get_repos())[0]
-            organization = repo.organization
-            if organization:
-                if organization.login == self.owner:
+            repos = paginator_to_list(installation.get_repos())
+            for repo in repos:
+                owner = repo.owner.login
+                name = repo.name
+                if owner == self.owner and name == self.repo:
                     return installation.id
         raise Exception("Installation not found")
-
-    def get_organization_repos(
-            self
-    ) -> list:
-        repos = paginator_to_list(self.organization.get_repos())
-        return repos
 
     def get_repo(
             self,
             repo_name: str
     ) -> Repository:
-        return self.organization.get_repo(repo_name)
+        return self.client.get_repo(repo_name)
 
     def get_pr_files_content(
             self,

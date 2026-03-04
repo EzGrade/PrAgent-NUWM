@@ -17,6 +17,7 @@ def run(
         context_prompt=files
     )
     context = prompt_client.get_prompt()
+    print()
 
     ai_client = ai.AiRequest(
         context=context
@@ -31,6 +32,6 @@ def run(
 
 if __name__ == "__main__":
     run(
-        owner=GITHUB_REPOSITORY_OWNER,
-        repository=GITHUB_REPOSITORY_NAME
+        owner="EzGrade",
+        repository="Pr-Agent-NUWM"
     )
