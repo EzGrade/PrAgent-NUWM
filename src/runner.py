@@ -32,6 +32,6 @@ def run(
 
 if __name__ == "__main__":
     run(
-        owner="EzGrade",
-        repository="Pr-Agent-NUWM"
+        owner=GITHUB_REPOSITORY_OWNER,
+        repository=GITHUB_REPOSITORY_NAME
     )
