@@ -15,4 +15,4 @@ COPY . .
 RUN chmod +x entrypoint.sh
 
 # Run the application
-CMD ["entrypoint.sh"]
+CMD ["/app/entrypoint.sh"]
