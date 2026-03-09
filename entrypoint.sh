@@ -1,4 +1,4 @@
 #!/bin/sh
 
-python3 src/runner.py
+python3 /app/src/runner.py
 
