@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the source code
 COPY . .
 
-RUN chmod +x /entrypoint.sh
+RUN chmod +x entrypoint.sh
 
 # Run the application
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/app/entrypoint.sh"]
