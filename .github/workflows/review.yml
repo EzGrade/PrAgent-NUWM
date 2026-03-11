@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Run pr agent on every pull request
     steps:
-      - name: PR Agent action step
+      - name: pr-agent-nuwm
         uses: EzGrade/Pr-Agent-NUWM@main
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
