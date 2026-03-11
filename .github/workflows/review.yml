@@ -19,7 +19,7 @@ jobs:
     name: Run pr agent on every pull request
     steps:
       - name: pr-agent-nuwm
-        uses: EzGrade/Pr-Agent-NUWM@main
+        uses: EzGrade/pr-agent-nuwm@main
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
