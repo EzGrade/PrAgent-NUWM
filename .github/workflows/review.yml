@@ -1,31 +1,31 @@
-name: review
+# This workflow enables developers to call PR-Agents `/[actions]` in PR's comments and upon PR creation. 
+# Learn more at https://www.codium.ai/pr-agent/
+# This is v0.2 of this workflow file
+
+name: PR-Agent
 
 on:
-  pull_request:
-    types: [ opened, synchronize, reopened ]
+  # pull_request:
+  # issue_comment:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
 
 jobs:
   pr_agent_job:
     runs-on: ubuntu-latest
     name: Run pr agent on every pull request
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Build and run Docker container
-        run: |
-          docker build -t pr-agent-nuwm .
-          docker run -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-                     -e GITHUB_REPOSITORY=${{ github.repository }} \
-                     -e PRIVATE_KEY=${{ secrets.PRIVATE_KEY }} \
-                     -e APP_ID=${{ secrets.APP_ID }} \
-                     -e OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
-                     -e OPENAI_MODEL=${{ secrets.OPENAI_MODEL }} \
-                     pr-agent-nuwm
+      - name: PR Agent action step
+        id: pragent
+        uses: EzGrade/Pr-Agent-NUWM@main
         env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          APP_ID: ${{ secrets.APP_ID }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          OPENAI_MODEL: "gpt-3.5-turbo"
+
+
