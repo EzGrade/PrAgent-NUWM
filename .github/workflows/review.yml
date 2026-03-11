@@ -13,11 +13,19 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build and run Docker container
-      - uses: EzGrade/Pr-Agent-NUWM@main
+        run: |
+          docker build -t pr-agent-nuwm .
+          docker run -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+                     -e GITHUB_REPOSITORY=${{ github.repository }} \
+                     -e PRIVATE_KEY=${{ secrets.PRIVATE_KEY }} \
+                     -e APP_ID=${{ secrets.APP_ID }} \
+                     -e OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
+                     -e OPENAI_MODEL=${{ secrets.OPENAI_MODEL }} \
+                     pr-agent-nuwm
         env:
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY=${{ github.repository }}
-          PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
-          APP_ID=${{ secrets.APP_ID }}
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          APP_ID: ${{ secrets.APP_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
