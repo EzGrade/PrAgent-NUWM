@@ -8,10 +8,6 @@ on:
   pull_request:
     types: [ opened, edited, synchronize ]
 
-permissions:
-  issues: write
-  pull-requests: write
-
 jobs:
   pr_agent_job:
     runs-on: ubuntu-latest
