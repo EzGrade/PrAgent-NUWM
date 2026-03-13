@@ -16,6 +16,7 @@ jobs:
       - name: pr-agent-nuwm
         uses: EzGrade/Pr-Agent-NUWM@main
         env:
+          APP_ID: ${{ secrets.APP_ID }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
