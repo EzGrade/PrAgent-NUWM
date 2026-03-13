@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Union
 
 from github.File import File
 from github.PaginatedList import PaginatedList
