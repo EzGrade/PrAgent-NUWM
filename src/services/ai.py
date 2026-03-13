@@ -12,6 +12,7 @@ class AiRequest:
     ):
         self.context = context
         self.model = model
+        openai.api_key = config.OPENAI_API_KEY
 
     def get_response(
             self,
