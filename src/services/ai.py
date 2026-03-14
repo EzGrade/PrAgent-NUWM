@@ -1,6 +1,5 @@
 from typing import List, Dict
 import openai
-from openai import api_key
 
 import config
 
@@ -14,6 +13,10 @@ class AiRequest:
         self.context = context
         self.model = model
 
+        self.client = openai.OpenAI(
+            api_key=config.OPENAI_API_KEY,
+        )
+
     def get_response(
             self,
     ) -> str:
@@ -21,10 +24,8 @@ class AiRequest:
         Get response from OpenAI
         :return response: OpenAI response
         """
-        openai.api_key = api_key
-        response = openai.chat.completions.create(
+        response = self.client.chat.completions.create(
             model=self.model,
-            messages=self.context,
-            stream=False
+            messages=self.context
         )
         return response.choices[0].message.content

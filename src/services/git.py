@@ -22,6 +22,7 @@ class GitHub:
             self,
             private_key: str = config.GITHUB_PRIVATE_KEY,
             app_id: int = config.GITHUB_APP_ID,
+            installation_id: int = config.GITHUB_INSTALLATION_ID,
             owner: str = None,
             repo: str = None
     ):
@@ -34,7 +35,12 @@ class GitHub:
         )
 
         self.app_client = GithubIntegration(auth=self.auth)
-        self.installation_id = self.get_installation_id()
+
+        if not installation_id:
+            self.installation_id = self.get_installation_id()
+        else:
+            self.installation_id = int(installation_id)
+
         self.client = self.app_client.get_github_for_installation(
             installation_id=self.installation_id,
         )
