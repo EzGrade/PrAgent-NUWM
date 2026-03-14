@@ -13,6 +13,7 @@ class AiRequest:
         self.context = context
         self.model = model
 
+        print(config.OPENAI_API_KEY)
         self.client = openai.OpenAI(
             api_key=config.OPENAI_API_KEY,
         )
