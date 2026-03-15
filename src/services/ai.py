@@ -25,6 +25,7 @@ class AiRequest:
         Get response from OpenAI
         :return response: OpenAI response
         """
+        print(self.client.api_key)
         response = self.client.chat.completions.create(
             model=self.model,
             messages=self.context
