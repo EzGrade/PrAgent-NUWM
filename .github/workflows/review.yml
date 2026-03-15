@@ -23,4 +23,3 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
           INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
-
