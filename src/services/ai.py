@@ -13,7 +13,6 @@ class AiRequest:
         self.context = context
         self.model = model
 
-        print(config.OPENAI_API_KEY)
         self.client = openai.OpenAI(
             api_key=config.OPENAI_API_KEY,
         )
@@ -25,7 +24,6 @@ class AiRequest:
         Get response from OpenAI
         :return response: OpenAI response
         """
-        print(self.client.api_key)
         response = self.client.chat.completions.create(
             model=self.model,
             messages=self.context
