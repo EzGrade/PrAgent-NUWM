@@ -1,3 +1,7 @@
+"""
+This is the main runner file that will be executed by the GitHub action.
+"""
+
 from config import GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME
 from services import git, ai, prompt
 
@@ -6,6 +10,12 @@ def run(
         owner: str,
         repository: str
 ):
+    """
+    This function is the main entry point for the application.
+    :param owner:
+    :param repository:
+    :return:
+    """
     git_client = git.GitHub(
         owner=owner,
         repo=repository
@@ -17,14 +27,13 @@ def run(
         context_prompt=files
     )
     context = prompt_client.get_prompt()
-    print()
 
     ai_client = ai.AiRequest(
         context=context
     )
     response = ai_client.get_response()
 
-    comment_response = git_client.leave_comment_on_pr(
+    git_client.leave_comment_on_pr(
         comment=response
     )
     return True
