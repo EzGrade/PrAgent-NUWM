@@ -3,8 +3,8 @@ This module contains tests for the prompt service
 """
 
 import unittest
+from service import PromptGenerator
 import config
-from .service import PromptGenerator
 
 
 class PromptTest(unittest.TestCase):

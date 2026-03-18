@@ -3,14 +3,15 @@ Git service tests
 """
 
 import unittest
+from service import GitHub
 import config
-from .service import GitHub
 
 
 class GitTests(unittest.TestCase):
     """
     Git service tests
     """
+
     def test_init(self):
         """
         Test GitHub class initialization
