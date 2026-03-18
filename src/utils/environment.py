@@ -1,3 +1,7 @@
+"""
+Environment utility functions
+"""
+
 import os
 
 
@@ -10,7 +14,7 @@ def get_env_var(key: str, default: str = None) -> str:
     """
     try:
         return os.environ[key]
-    except KeyError:
+    except KeyError as exc:
         if default is not None:
             return default
-        raise KeyError(f"Environment variable {key} not set")
+        raise KeyError(f"Environment variable {key} not set") from exc

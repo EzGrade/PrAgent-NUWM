@@ -1,15 +1,22 @@
+"""
+Git service tests
+"""
+
 import unittest
-import service
 import config
+from .service import GitHub
 
 
 class GitTests(unittest.TestCase):
+    """
+    Git service tests
+    """
     def test_init(self):
         """
         Test GitHub class initialization
         :return:
         """
-        github = service.GitHub(
+        github = GitHub(
             owner=config.GITHUB_REPOSITORY_OWNER,
             repo=config.GITHUB_REPOSITORY_NAME
         )
@@ -23,7 +30,7 @@ class GitTests(unittest.TestCase):
         """
         self.owner = config.GITHUB_REPOSITORY_OWNER
         self.repo = config.GITHUB_REPOSITORY_NAME
-        self.github = service.GitHub(
+        self.github = GitHub(
             owner=self.owner,
             repo=self.repo
         )
