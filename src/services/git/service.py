@@ -1,16 +1,25 @@
+"""
+This module contains the GitHub class that is used to interact with the GitHub API.
+"""
+
 from typing import List, Dict, Union
 
 from github.File import File
 from github.PaginatedList import PaginatedList
 from github.Repository import Repository
+from github import GithubIntegration, Auth
 
 import config
-from github import GithubIntegration, Auth
 
 
 def paginator_to_list(
         paginator: PaginatedList[Repository]
 ) -> List[Union[Repository, File]]:
+    """
+    Convert paginator to list
+    :param paginator:
+    :return:
+    """
     all_pages = []
     for obj in paginator:
         all_pages.append(obj)
@@ -18,10 +27,12 @@ def paginator_to_list(
 
 
 class GitHub:
+    """
+    This class is used to interact with the GitHub API.
+    """
+
     def __init__(
             self,
-            private_key: str = config.GITHUB_PRIVATE_KEY,
-            app_id: int = config.GITHUB_APP_ID,
             installation_id: int = config.GITHUB_INSTALLATION_ID,
             owner: str = None,
             repo: str = None
@@ -30,8 +41,8 @@ class GitHub:
         self.repo = repo
 
         self.auth = Auth.AppAuth(
-            app_id=app_id,
-            private_key=private_key,
+            app_id=config.GITHUB_APP_ID,
+            private_key=config.GITHUB_PRIVATE_KEY,
         )
 
         self.app_client = GithubIntegration(auth=self.auth)
@@ -45,7 +56,7 @@ class GitHub:
             installation_id=self.installation_id,
         )
 
-        self.repository = self.get_repo(f"{owner}/{repo}")
+        self.repository = self.client.get_repo(f"{owner}/{repo}")
 
     def get_installation_id(
             self,
@@ -62,17 +73,16 @@ class GitHub:
                 name = repo.name
                 if owner == self.owner and name == self.repo:
                     return installation.id
-        raise Exception("Installation not found")
-
-    def get_repo(
-            self,
-            repo_name: str
-    ) -> Repository:
-        return self.client.get_repo(repo_name)
+        raise RuntimeError("Installation not found")
 
     def get_pr_files_content(
             self,
     ) -> Dict[str, str]:
+        """
+        Get content of the files in the last PR
+        :return:
+        """
+
         def get_files_recursively(path: str, ref: str) -> Dict[str, str]:
             files = self.repository.get_contents(path, ref=ref)
             context = {}
@@ -89,6 +99,10 @@ class GitHub:
     def get_last_pr_number(
             self
     ) -> int:
+        """
+        Get last PR number
+        :return:
+        """
         pr_number = self.repository.get_pulls(sort="decr")
         return pr_number[0].number
 
@@ -97,6 +111,12 @@ class GitHub:
             comment: str,
             pull_number: int = None
     ):
+        """
+        Leave comment on last PR
+        :param comment:
+        :param pull_number:
+        :return:
+        """
         if not pull_number:
             pull_number = self.get_last_pr_number()
 
