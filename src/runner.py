@@ -7,6 +7,7 @@ import logging
 from config import GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME
 from services.ai.service import AiRequest
 from services.git.service import GitHub
+from services.google.service import GoogleSheet
 from services.prompt.service import PromptGenerator
 from services.student_variant.service import StudentVariant
 from utils.logger import setup_logger
@@ -24,23 +25,23 @@ def run(owner: str, repository: str) -> bool:
     try:
         git_client = GitHub(owner=owner, repo=repository)
         files = git_client.get_pr_files_content()
-        pr_creator = git_client.get_pr_creator()
-        roster_path = ""
-        if roster_path == "":
-            raise ValueError("Roaster path is not set")
-        with open(roster_path) as file:
-            roster = pd.read_csv(file)
+        pr_creator = git_client.get_last_commit_author()
 
-        student_variant = StudentVariant(
+        google_client = GoogleSheet()
+        students_variant: pd.DataFrame = google_client.get_variants_sheet()
+        students_roster: pd.DataFrame = google_client.get_roster_sheet()
+
+        student = StudentVariant(
             student_username=pr_creator,
             readme_variants=files.get("README.md", ""),
-            csv_roster=roster
+            variants_sheet=students_variant,
+            roster_sheet=students_roster
         )
+
         files.pop("README.md", None)
 
         prompt_client = PromptGenerator(
-            system_prompt="System prompt",
-            student_assignment=student_variant.map_student_to_variant(),
+            student_assignment=student.student_assignment,
             context_prompt=files
         )
         context = prompt_client.get_prompt()
@@ -49,6 +50,15 @@ def run(owner: str, repository: str) -> bool:
         response = ai_client.get_response()
 
         git_client.leave_comment_on_pr(comment=response)
+
+        google_client.leave_response(
+            student_name=student.student_real_name,
+            sheet_name=git_client.get_lab_name(),
+            ai_response=response,
+            last_pr_link=git_client.get_last_pr_link(),
+            prompt=prompt_client.context,
+            summary=""
+        )
         return True
 
     except Exception as e:

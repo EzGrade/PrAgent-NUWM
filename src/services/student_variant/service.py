@@ -6,18 +6,34 @@ from utils.logger import setup_logger
 logger = setup_logger(__name__)
 
 
+def get_text_after_phrase(phrase, text):
+    pattern = f'{phrase}(.+)'
+    result = re.search(pattern, text, re.DOTALL)
+    if result:
+        return result.group(1)
+
+
 class StudentVariant:
     def __init__(
             self,
             student_username: str,
             readme_variants: str,
-            csv_roaster: pd.DataFrame
+            variants_sheet: pd.DataFrame,
+            roster_sheet: pd.DataFrame
     ):
         logger.debug("Initializing StudentVariant with username: %s", student_username)
         self.student_username = student_username
         self.readme_variants = readme_variants
         self.variants = self.__parse_readme()
-        self.csv_roaster = csv_roaster
+
+        self.roster_sheet = roster_sheet
+        self.student_real_name = self.__get_student_real_name()
+
+        self.variants_sheet = variants_sheet
+        self.student_variant = self.__get_student_variant()
+
+        self.student_assignment = self.get_student_assignment()
+
         logger.info("StudentVariant initialized")
 
     def __parse_readme(self) -> Dict[int, str]:
@@ -27,48 +43,53 @@ class StudentVariant:
         :return: Dictionary of readme variants with variant number as key and assignment as value.
         """
         logger.debug("Parsing readme variants")
-        pattern = re.compile(r'(\d+)\.\s+(.+?)(?=\n\d+\.|$)', re.DOTALL)
-        matches = pattern.findall(self.readme_variants)
+        variants_part = get_text_after_phrase("Варіанти завдань для самостійної роботи:", self.readme_variants)
+        pattern = re.compile(r'(\d+)\.\s+(.+?)(?=\d+\.|$)', re.DOTALL)
+        matches = pattern.findall(variants_part)
         variants = {int(variant): assignment.strip() for variant, assignment in matches}
         logger.info("Parsed %d variants", len(variants))
         return variants
 
-    def map_student_to_variant(self) -> str:
+    def __get_student_real_name(self) -> str:
         """
-        Map the student to a variant based on their username.
+        Get student real name from the roster sheet.
 
-        :return: The assignment corresponding to the student's variant.
-        :raises ValueError: If the student username is not found in the CSV roster.
-        """
-        logger.debug("Mapping student '%s' to a variant", self.student_username)
-        student_index = self.__find_student_index()
-        student_variant = self.__calculate_variant(student_index)
-        student_assignment = self.variants[student_variant]
-        logger.info("Mapped student '%s' to variant %d: %s", self.student_username, student_variant, student_assignment)
-        return student_assignment
-
-    def __find_student_index(self) -> int:
-        """
-        Find the index of the student in the CSV roster.
-
-        :return: Index of the student.
-        :raises ValueError: If the student username is not found in the CSV roster.
+        :return: Student real name.
         """
         try:
-            student_index = self.csv_roaster.loc[self.csv_roaster['github_username'] == self.student_username].index[0]
-            logger.debug("Found student '%s' at index %d", self.student_username, student_index)
-            return student_index
-        except IndexError:
-            logger.error("Student username '%s' not found in the CSV roster", self.student_username)
-            raise ValueError(f"Student username '{self.student_username}' not found in the CSV roster.")
+            logger.debug("Getting student real name")
+            student_row = self.roster_sheet.loc[self.roster_sheet['github_username'] == self.student_username]
+            student_real_name = student_row['identifier'].values[0] if not student_row.empty else None
+            student_real_name = ' '.join(student_real_name.split()) if student_real_name else None
+            logger.info("Got student real name: %s", student_real_name)
+            return student_real_name
+        except Exception as e:
+            logger.error("An error occurred: %s", e)
+            return None
 
-    def __calculate_variant(self, student_index: int) -> int:
+    def __get_student_variant(self) -> int:
         """
-        Calculate the variant number for the student based on their index.
+        Get student variant from the variants sheet.
 
-        :param student_index: Index of the student in the CSV roster.
-        :return: Variant number.
+        :return: Student variant number.
         """
-        student_variant = student_index % len(self.variants) + 1
-        logger.debug("Calculated variant %d for student index %d", student_variant, student_index)
-        return student_variant
+        try:
+            logger.debug("Getting student variant")
+            student_row = self.variants_sheet.loc[self.variants_sheet['Прізвище'] == self.student_real_name]
+            student_variant = student_row['Варіант'].values[0] if not student_row.empty else None
+            logger.info("Got student variant: %s", student_variant)
+            return student_variant
+        except Exception as e:
+            logger.error("An error occurred: %s", e)
+            return None
+
+    def get_student_assignment(self) -> str:
+        """
+        Get student assignment.
+
+        :return: Student assignment.
+        """
+        logger.debug("Getting student assignment")
+        student_assignment = self.variants.get(self.student_variant)
+        logger.info("Got student assignment: %s", student_assignment)
+        return student_assignment

@@ -119,20 +119,38 @@ class GitHub:
         pr.create_issue_comment(comment)
         logger.info(f"Comment left on PR number: {pull_number}")
 
-    def get_pr_creator(self, pull_number: Optional[int] = None) -> str:
+    def get_last_commit_author(self) -> str:
         """
-        Get the creator of the pull request
-        :param pull_number: The number of the pull request
-        :return: The username of the creator of the pull request
+        Get the author of the last commit.
+        :return: The username or the email of the author of the last commit
         """
-        logger.debug("Getting PR creator")
-        if not pull_number:
-            pull_number = self.last_pr_number
+        logger.debug("Getting last commit author")
 
-        pr = self.repository.get_pull(pull_number)
-        creator = pr.user.login
-        logger.info(f"PR creator: {creator}")
-        return creator
+        # Retrieves the list of commits.
+        repository_name = self.repository.full_name
+        student_nickname = repository_name.split("-")[-1]
+        return student_nickname
+
+    def get_lab_name(self) -> str:
+        """
+        Get the name of the lab.
+        :return: The name of the lab
+        """
+        logger.debug("Getting lab name")
+        repository_name = self.repository.full_name
+        lab_name = repository_name.split("/")[1].split("-")[:-1]
+        lab_name = "-".join(lab_name)
+        logger.info(f"Lab name: {lab_name}")
+        return lab_name
+
+    def get_last_pr_link(self) -> str:
+        """
+        Get the link to the last PR.
+        :return: The link to the last PR
+        """
+        logger.debug("Getting last PR link")
+        link = f"https://github.com/{self.owner}/{self.repo}/pull/{self.last_pr_number}"
+        return link
 
 
 if __name__ == "__main__":

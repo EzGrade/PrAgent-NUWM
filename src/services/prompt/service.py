@@ -12,7 +12,7 @@ logger = setup_logger(__name__)
 
 class PromptGenerator:
     """
-    Class to generate prompt for the system and context
+    Class to generate prompt for the system and contextД
     """
 
     def __init__(
