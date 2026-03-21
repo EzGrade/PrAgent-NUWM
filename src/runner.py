@@ -25,11 +25,13 @@ def run(owner: str, repository: str) -> bool:
     try:
         git_client = GitHub(owner=owner, repo=repository)
         files = git_client.get_pr_files_content()
-        pr_creator = git_client.get_last_commit_author()
 
         google_client = GoogleSheet()
         students_variant: pd.DataFrame = google_client.get_variants_sheet()
         students_roster: pd.DataFrame = google_client.get_roster_sheet()
+        pr_creator = git_client.get_student(all_nicknames=google_client.get_all_nicknames())
+
+        prompts = google_client.get_teacher_prompts(lab_number=git_client.get_lab_number(student_nickname=pr_creator))
 
         student = StudentVariant(
             student_username=pr_creator,
@@ -42,22 +44,25 @@ def run(owner: str, repository: str) -> bool:
 
         prompt_client = PromptGenerator(
             student_assignment=student.student_assignment,
-            context_prompt=files
+            context_prompt=files,
+            teacher_prompts=prompts
         )
+
         context = prompt_client.get_prompt()
 
         ai_client = AiRequest(context=context)
         response = ai_client.get_response()
 
-        git_client.leave_comment_on_pr(comment=response)
+        git_client.leave_comment_on_pr(comment=response["comment"])
 
         google_client.leave_response(
+            student_variant=student,
             student_name=student.student_real_name,
-            sheet_name=git_client.get_lab_name(),
-            ai_response=response,
+            sheet_name=git_client.get_lab_name(student_nickname=pr_creator),
+            ai_response=response["comment"],
             last_pr_link=git_client.get_last_pr_link(),
             prompt=prompt_client.context,
-            summary=""
+            summary=response["rating"]
         )
         return True
 

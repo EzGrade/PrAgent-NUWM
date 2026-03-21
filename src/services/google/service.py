@@ -1,13 +1,16 @@
 """
 This module contains the GoogleSheet class that is used to interact with the Google Sheets API.
 """
+import time
 
 import gspread
-from gspread.exceptions import SpreadsheetNotFound
 import pandas as pd
+from typing import List, Tuple
 
-from typing import Dict, Optional, List
+from gspread import Worksheet
+
 import config
+from services.student_variant.service import StudentVariant
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -18,109 +21,82 @@ class GoogleSheet:
     This class is used to interact with the Google Sheets.
     """
 
-    USER_COLUMN_INDEX = 2
+    ALL_COLUMNS = [
+        "Номер варіанту",
+        "ПІБ",
+        "github nickname",
+        "Коментар бота",
+        "№ Спроби",
+        "Час здачі",
+        "Лінк на останній PR",
+        "Промт",
+        "Підсумок",
+        "Кнопка перевірки ще раз"
+    ]
 
     def __init__(
             self,
             credentials: str = config.CREDENTIALS_CONTENT,
-            spreadsheet_url: str = config.SPREADSHEET_URL
+            spreadsheet_url: str = config.SPREADSHEET_URL,
     ):
         """
-        :param credentials: Content from credentials file
-        :param spreadsheet_url: URL to your Google Sheet
+        Initialize the GoogleSheet client.
         """
-        logger.debug("Initializing GoogleSheet with spreadsheet URL: %s", spreadsheet_url)
         self.client = gspread.service_account_from_dict(credentials)
         self.spreadsheet = self.client.open_by_url(spreadsheet_url)
-        logger.info("GoogleSheet initialized")
+
+    def get_sheet_data(self, sheet_name: str) -> pd.DataFrame:
+        """
+        Get data from a specific sheet.
+        """
+        try:
+            sheet = self.spreadsheet.worksheet(sheet_name)
+            data = sheet.get_all_records()
+            return pd.DataFrame(data)
+        except Exception as e:
+            logger.error("An error occurred while getting sheet '%s': %s", sheet_name, e)
+            return pd.DataFrame()
+
+    def get_teacher_prompts(self, lab_number: int) -> List[str]:
+        """
+        Get teacher prompts for a specific lab.
+        """
+        try:
+            sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["prompts"])
+            data = sheet.get_all_records()
+            dataframe = pd.DataFrame(data)
+            prompts = dataframe.iloc[lab_number].tolist()[0]
+            return prompts.split(";;")
+        except Exception as e:
+            logger.error("An error occurred while getting teacher prompts: %s", e)
 
     def get_variants_sheet(self) -> pd.DataFrame:
         """
         Get the variants sheet from the spreadsheet.
-        :return: DataFrame containing the sheet's data
         """
-        logger.debug("Getting variants sheet")
-        try:
-            sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["variants"])
-            data = sheet.get_all_records()
-            df = pd.DataFrame(data)
-            logger.info("Got variants sheet")
-            return df
-        except Exception as e:
-            logger.error("An error occurred: %s", e)
-
-            # Returns an empty DataFrame in case of an error.
-            return pd.DataFrame()
+        return self.get_sheet_data(config.SHEETS_NAMING["variants"])
 
     def get_roster_sheet(self) -> pd.DataFrame:
         """
         Get the roster sheet from the spreadsheet.
-        :return: DataFrame containing the sheet's data
         """
-        logger.debug("Getting roster sheet")
+        return self.get_sheet_data(config.SHEETS_NAMING["roster"])
+
+    def __copy_template_to_new_sheet(self, new_sheet_name: str) -> Worksheet:
+        """
+        Copy the template sheet to a new sheet.
+        """
         try:
-            sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["roster"])
-            data = sheet.get_all_records()
-            df = pd.DataFrame(data)
-            logger.info("Got roster sheet")
-            return df
+            template_sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["template"])
+            self.spreadsheet.duplicate_sheet(source_sheet_id=template_sheet.id, new_sheet_name=new_sheet_name)
+            time.sleep(2)
+            return self.spreadsheet.worksheet(new_sheet_name)
         except Exception as e:
-            logger.error("An error occurred: %s", e)
-
-            # Returns an empty DataFrame in case of an error.
-            return pd.DataFrame()
-
-    def write_user_result(
-            self,
-            user: str,
-            result: Dict[str, str]
-    ) -> None:
-        """
-        Add or update user result in sheet.
-        :param user: GitHub username
-        :param result: Dict with results.
-        """
-        logger.debug("Writing user result for user: %s with result: %s", user, result)
-        try:
-            user_row = self._find_user_row(user)
-            row_number = user_row if user_row else len(self.spreadsheet.sheet1.get_all_values()) + 1
-            row_data = [row_number, user] + [result[key] for key in result]
-
-            if user_row:
-                self.spreadsheet.sheet1.update(f"A{user_row}:E{user_row}", [row_data])
-                logger.info("Updated user result for user: %s at row: %d", user, user_row)
-            else:
-                self.spreadsheet.sheet1.append_row(row_data)
-                logger.info("Appended new user result for user: %s at row: %d", user, row_number)
-        except SpreadsheetNotFound:
-            logger.error("Spreadsheet not found: %s", self.spreadsheet.url)
-        except Exception as e:
-            logger.error("An error occurred: %s", e)
-
-    def _find_user_row(
-            self,
-            user: str
-    ) -> Optional[int]:
-        """
-        Find the row number of a user by their GitHub username.
-        :param user: GitHub username
-        :return: Row number or None if user is not found.
-        """
-        logger.debug("Finding user row for user: %s", user)
-        try:
-            users = self.spreadsheet.sheet1.col_values(self.USER_COLUMN_INDEX)
-            row_number = users.index(user) + 1
-            logger.info("Found user: %s at row: %d", user, row_number)
-            return row_number
-        except ValueError:
-            logger.info("User: %s not found", user)
-            return None
-        except Exception as e:
-            logger.error("An error occurred while finding the user row: %s", e)
-            return None
+            logger.error("An error occurred while copying template to new sheet: %s", e)
 
     def leave_response(
             self,
+            student_variant: StudentVariant,
             student_name: str,
             sheet_name: str,
             ai_response: str,
@@ -128,99 +104,157 @@ class GoogleSheet:
             prompt: str,
             summary: str,
     ) -> bool:
-
         """
-        Leave response in the Google Sheet using pandas DataFrame.
-        :param student_name: Real name of the student
-        :param sheet_name: Name of the sheet
-        :param ai_response: AI response
-        :param last_pr_link: Link to the last PR
-        :param prompt: Prompt for the student
-        :param summary: Summary of the response
-        :return: True if the response was left successfully, False otherwise
+        Leave response in the Google Sheet.
         """
-        logger.debug("Leaving response in the Google Sheet")
         try:
             sheet = self.spreadsheet.worksheet(sheet_name)
-            data = pd.DataFrame(sheet.get_all_records())
-            row_number = self.__get_student_row(data, student_name)
+        except gspread.exceptions.WorksheetNotFound:
+            logger.info("Sheet '%s' not found, creating a new one", sheet_name)
+            sheet = self.__copy_template_to_new_sheet(sheet_name)
+
+        try:
+            records = sheet.get_all_records()
+            if not records:
+                self.__insert_new_student(student_variant, sheet_name)
+                records = sheet.get_all_records()
+
+            data = pd.DataFrame(records)
+            logger.debug(data.to_string())
+            found, row_number = self.__get_student_row(data, student_name)
+            if not found:
+                self.__insert_new_student(student_variant, sheet_name)
+                data = pd.DataFrame(sheet.get_all_records())
+                _, row_number = self.__get_student_row(data, student_name)
             attempts = self.__get_student_attempts(data, student_name) + 1
             date = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            # Update DataFrame with new values
-            data.at[row_number - 1, 'розгорнуте зауваження, коментар бота'] = ai_response
-            data.at[row_number - 1, '# спроби'] = attempts
-            data.at[row_number - 1, 'час здачі'] = date
-            data.at[row_number - 1, 'лінк на останній пулріквест'] = last_pr_link
-            data.at[row_number - 1, 'Промт'] = prompt
-            data.at[row_number - 1, 'підсумок, розпарсили із розгорнутого зауваження'] = summary
-            # Write back the DataFrame to the Google Sheet
+            self.__update_student_data(
+                data,
+                row_number,
+                ai_response,
+                attempts,
+                date,
+                last_pr_link,
+                prompt,
+                summary,
+            )
             self.__write_dataframe_to_sheet(sheet_name, data)
             return True
         except Exception as e:
-            logger.error("An error occurred: %s", e)
+            logger.error("An error occurred while leaving response: %s", e)
             return False
 
     @staticmethod
-    def __get_student_row(data: pd.DataFrame, student_name: str) -> int:
+    def __get_student_row(data: pd.DataFrame, student_name: str) -> Tuple[bool, int]:
         """
         Get the row number of a student by their real name.
-        :param data: DataFrame containing the sheet's data
-        :param student_name: Real name of the student
-        :return: Row number
         """
-        logger.debug("Getting student row for student: %s", student_name)
         try:
             students = data['ПІБ'].tolist()
-            row_number = students.index(student_name) + 1
-            logger.info("Found student: %s at row: %d", student_name, row_number)
-            return row_number
+            if student_name in students:
+                row_number = students.index(student_name) + 1
+                return True, row_number
+            else:
+                row_number = len(students) + 1
+                return False, row_number
         except Exception as e:
-            logger.error("An error occurred: %s", e)
+            logger.error("An error occurred while getting student row: %s", e)
+            return False, -1
+
+    @staticmethod
+    def __update_student_data(
+            data: pd.DataFrame,
+            row_number: int,
+            ai_response: str,
+            attempts: int,
+            date: str,
+            last_pr_link: str,
+            prompt: str,
+            summary: str,
+    ):
+        """
+        Update student data in the DataFrame.
+        """
+        idx = row_number - 1
+        data.at[idx, 'Коментар бота'] = ai_response
+        data.at[idx, '№ Спроби'] = attempts
+        data.at[idx, 'Час здачі'] = date
+        data.at[idx, 'Лінк на останній PR'] = last_pr_link
+        data.at[idx, 'Промт'] = prompt
+        data.at[idx, 'Підсумок'] = summary
 
     def __write_dataframe_to_sheet(self, sheet_name: str, dataframe: pd.DataFrame) -> None:
         """
         Write a pandas DataFrame back to the Google Sheet.
-        :param sheet_name: Name of the sheet
-        :param dataframe: Pandas DataFrame to write
         """
-        logger.debug("Writing DataFrame to Google Sheet")
         try:
             sheet = self.spreadsheet.worksheet(sheet_name)
+            dataframe = dataframe.ffill()
             sheet.clear()
             sheet.update([dataframe.columns.values.tolist()] + dataframe.values.tolist())
-            logger.info("Successfully wrote DataFrame to Google Sheet")
         except Exception as e:
             logger.error("An error occurred while writing DataFrame to sheet: %s", e)
-
-    def __get_ai_response(self, data: pd.DataFrame, student_name: str) -> str:
-        """
-        Get the AI response of a student.
-        :param data: DataFrame containing the sheet's data
-        :param student_name: Real name of the student
-        :return: AI response
-        """
-        logger.debug("Getting AI response for student: %s", student_name)
-        try:
-            row_number = self.__get_student_row(data, student_name)
-            ai_response = data.loc[row_number - 1, 'розгорнуте зауваження, коментар бота']
-            logger.info("Found student: %s with AI response: %s", student_name, ai_response)
-            return ai_response
-        except Exception as e:
-            logger.error("An error occurred: %s", e)
 
     def __get_student_attempts(self, data: pd.DataFrame, student_name: str) -> int:
         """
         Get the number of attempts of a student.
-        :param data: DataFrame containing the sheet's data
-        :param student_name: Real name of the student
-        :return: Number of attempts
         """
-        logger.debug("Getting student attempts for student: %s", student_name)
         try:
-            row_number = self.__get_student_row(data, student_name)
-            attempts = data.loc[row_number - 1, '# спроби']
-            logger.info("Found student: %s with attempts: %s", student_name, attempts)
-            return int(attempts) if attempts else 0
+            _, row_number = self.__get_student_row(data, student_name)
+            attempts = data.loc[row_number - 1, '№ Спроби']
+            return int(attempts) if pd.notna(attempts) else 0
         except Exception as e:
-            logger.error("An error occurred: %s", e)
+            logger.error("An error occurred while getting student attempts: %s", e)
+            return 0
+
+    def __insert_new_student(self, student_variant: StudentVariant, sheet_name: str) -> bool:
+        """
+        Insert a new student into the Google Sheet.
+        """
+        logger.info("Inserting new student into the sheet")
+        try:
+            sheet = self.spreadsheet.worksheet(sheet_name)
+            records = sheet.get_all_records()
+            if not records:
+                logger.info("Sheet is empty, inserting new student")
+                data = pd.DataFrame({
+                    "Номер варіанту": [student_variant.student_variant],
+                    "ПІБ": [student_variant.student_real_name],
+                    "github nickname": [student_variant.student_username],
+                    "Коментар бота": [""],
+                    "№ Спроби": [0],
+                    "Час здачі": "",
+                    "Лінк на останній PR": [""],
+                    "Промт": [""],
+                    "Підсумок": [""],
+                    "Кнопка перевірки ще раз": [""],
+                })
+                self.__write_dataframe_to_sheet(sheet_name, data)
+                return True
+
+            data = pd.DataFrame(sheet.get_all_records())
+            new_student = pd.DataFrame({
+                "Номер варіанту": [student_variant.student_variant],
+                "ПІБ": [student_variant.student_real_name],
+                "github nickname": [student_variant.student_username],
+            })
+            data = pd.concat([data, new_student], ignore_index=True)
+            self.__write_dataframe_to_sheet(sheet_name, data)
+            return True
+
+        except Exception as e:
+            logger.error("An error occurred while inserting new student: %s", e)
+            return False
+
+    def get_all_nicknames(self) -> List[str]:
+        """
+        Get all nicknames from the Google Sheet.
+        """
+        try:
+            sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["roster"])
+            data = sheet.get_all_records()
+            nicknames = [row["github_username"] for row in data if row.get("github_username")]
+            return nicknames
+        except Exception as e:
+            logger.error("An error occurred while getting all nicknames: %s", e)
+            return []

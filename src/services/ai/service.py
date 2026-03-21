@@ -4,6 +4,7 @@ AI Service
 
 from typing import List, Dict
 import openai
+import re
 
 import config
 from utils.logger import setup_logger
@@ -44,6 +45,25 @@ class AiRequest:
             api_key=config.OPENAI_API_KEY,
         )
 
+    @staticmethod
+    def __parse_response(response: str) -> Dict[str, str]:
+        """
+        Parse response from OpenAI
+        :param response: OpenAI response
+        :return: Parsed response
+        """
+        logger.debug("Parsing response from OpenAI")
+        pattern = r'\[Rating\]\(([^)]+)\)'
+        match = re.findall(pattern, response)
+        rating = None
+        if match:
+            response = re.sub(pattern, "", response)
+            rating = match[0]
+        return {
+            "comment": response.strip(),
+            "rating": rating
+        }
+
     def get_response(
             self,
     ) -> str:
@@ -57,4 +77,5 @@ class AiRequest:
             messages=self.context
         )
         logger.debug("Received response from OpenAI")
-        return response.choices[0].message.content
+        response = response.choices[0].message.content
+        return self.__parse_response(response)

@@ -18,7 +18,6 @@ def paginator_to_list(
     :param paginator: PaginatedList of Repository or File
     :return: List of Repository or File
     """
-    logger.debug("Converting paginator to list")
     return [obj for obj in paginator]
 
 
@@ -111,7 +110,6 @@ class GitHub:
         :param comment: Comment to leave
         :param pull_number: PR number to comment on
         """
-        logger.debug(f"Leaving comment on PR: {comment}")
         if not pull_number:
             pull_number = self.last_pr_number
 
@@ -119,27 +117,29 @@ class GitHub:
         pr.create_issue_comment(comment)
         logger.info(f"Comment left on PR number: {pull_number}")
 
-    def get_last_commit_author(self) -> str:
+    def get_student(self, all_nicknames: List[str]) -> str:
         """
         Get the author of the last commit.
         :return: The username or the email of the author of the last commit
         """
         logger.debug("Getting last commit author")
-
-        # Retrieves the list of commits.
         repository_name = self.repository.full_name
-        student_nickname = repository_name.split("-")[-1]
-        return student_nickname
+        lab_name = repository_name.split("/")[-1]
+        for nickname in all_nicknames:
+            if nickname in lab_name:
+                logger.info(f"Student nickname: {nickname}")
+                return nickname
+        return None
 
-    def get_lab_name(self) -> str:
+    def get_lab_name(self, student_nickname: str) -> str:
         """
         Get the name of the lab.
         :return: The name of the lab
         """
         logger.debug("Getting lab name")
         repository_name = self.repository.full_name
-        lab_name = repository_name.split("/")[1].split("-")[:-1]
-        lab_name = "-".join(lab_name)
+        lab_name = repository_name.split("/")[-1]
+        lab_name = lab_name.replace(f"-{student_nickname}", "")
         logger.info(f"Lab name: {lab_name}")
         return lab_name
 
@@ -151,6 +151,17 @@ class GitHub:
         logger.debug("Getting last PR link")
         link = f"https://github.com/{self.owner}/{self.repo}/pull/{self.last_pr_number}"
         return link
+
+    def get_lab_number(self, student_nickname) -> int:
+        """
+        Get the lab number.
+        :return: The lab number
+        """
+        logger.debug("Getting lab number")
+        lab_name = self.get_lab_name(student_nickname=student_nickname)
+        lab_number = lab_name.split("-")[0]
+        lab_number = int(lab_number) // 10
+        return lab_number
 
 
 if __name__ == "__main__":
