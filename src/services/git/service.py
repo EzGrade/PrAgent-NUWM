@@ -7,11 +7,12 @@ import config
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+GithubEntity = Union[Repository, File]
 
 
 def paginator_to_list(
         paginator: PaginatedList[Union[Repository, File]]
-) -> List[Union[Repository, File]]:
+) -> List[GithubEntity]:
     """
     Convert paginator to list
     :param paginator: PaginatedList of Repository or File

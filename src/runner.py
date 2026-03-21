@@ -25,16 +25,16 @@ def run(owner: str, repository: str) -> bool:
         git_client = GitHub(owner=owner, repo=repository)
         files = git_client.get_pr_files_content()
         pr_creator = git_client.get_pr_creator()
-        roaster_path = ""
-        if roaster_path == "":
+        roster_path = ""
+        if roster_path == "":
             raise ValueError("Roaster path is not set")
-        with open(roaster_path) as file:
-            roaster = pd.read_csv(file)
+        with open(roster_path) as file:
+            roster = pd.read_csv(file)
 
         student_variant = StudentVariant(
             student_username=pr_creator,
             readme_variants=files.get("README.md", ""),
-            csv_roaster=roaster
+            csv_roster=roster
         )
         files.pop("README.md", None)
 
