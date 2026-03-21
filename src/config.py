@@ -23,6 +23,8 @@ CREDENTIALS_CONTENT = get_env_var("GOOGLE_CREDENTIALS_CONTENT", default='')
 if CREDENTIALS_CONTENT.endswith(".json"):
     with open(CREDENTIALS_CONTENT, "r", encoding="utf-8") as credentials_file:
         CREDENTIALS_CONTENT = json.loads(credentials_file.read())
+else:
+    CREDENTIALS_CONTENT = json.loads(CREDENTIALS_CONTENT)
 
 SPREADSHEET_URL = get_env_var("SPREADSHEET_URL", default='')
 SHEETS_NAMING = json.loads(get_env_var("SHEETS_NAMING"))
