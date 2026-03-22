@@ -33,7 +33,7 @@ def run(owner: str, repository: str) -> bool:
         lab_name = git_client.get_lab_name(all_lab_names=google_client.get_all_lab_names())
         pr_creator = git_client.get_student(lab_name=lab_name)
 
-        prompts = google_client.get_teacher_prompts(lab_number=git_client.get_lab_number(student_nickname=pr_creator))
+        prompts = google_client.get_teacher_prompts(lab_name=lab_name)
 
         student = StudentVariant(
             student_username=pr_creator,
