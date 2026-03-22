@@ -58,6 +58,7 @@ class AiRequest:
         rating = None
         if match:
             rating = match[0]
+            response = re.sub(pattern, rating, response)
         return {
             "comment": response.strip(),
             "rating": rating
