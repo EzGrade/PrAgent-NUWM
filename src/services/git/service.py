@@ -117,21 +117,18 @@ class GitHub:
         pr.create_issue_comment(comment)
         logger.info(f"Comment left on PR number: {pull_number}")
 
-    def get_student(self, all_nicknames: List[str]) -> str:
+    def get_student(self, lab_name: str) -> str:
         """
         Get the author of the last commit.
         :return: The username or the email of the author of the last commit
         """
         logger.debug("Getting last commit author")
         repository_name = self.repository.full_name
-        lab_name = repository_name.split("/")[-1]
-        for nickname in all_nicknames:
-            if nickname in lab_name:
-                logger.info(f"Student nickname: {nickname}")
-                return nickname
-        return None
+        _lab_name = repository_name.split("/")[-1]
+        student = lab_name.replace(f"{_lab_name}-", "")
+        return student
 
-    def get_lab_name(self, student_nickname: str) -> str:
+    def get_lab_name(self, all_lab_names: List[str]) -> str:
         """
         Get the name of the lab.
         :return: The name of the lab
@@ -139,7 +136,10 @@ class GitHub:
         logger.debug("Getting lab name")
         repository_name = self.repository.full_name
         lab_name = repository_name.split("/")[-1]
-        lab_name = lab_name.replace(f"-{student_nickname}", "")
+        for _lab_name in all_lab_names:
+            if _lab_name in lab_name:
+                lab_name = _lab_name
+                break
         logger.info(f"Lab name: {lab_name}")
         return lab_name
 

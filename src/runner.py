@@ -29,7 +29,9 @@ def run(owner: str, repository: str) -> bool:
         google_client = GoogleSheet()
         students_variant: pd.DataFrame = google_client.get_variants_sheet()
         students_roster: pd.DataFrame = google_client.get_roster_sheet()
-        pr_creator = git_client.get_student(all_nicknames=google_client.get_all_nicknames())
+
+        lab_name = git_client.get_lab_name(all_lab_names=google_client.get_all_lab_names())
+        pr_creator = git_client.get_student(lab_name=lab_name)
 
         prompts = google_client.get_teacher_prompts(lab_number=git_client.get_lab_number(student_nickname=pr_creator))
 
@@ -58,7 +60,7 @@ def run(owner: str, repository: str) -> bool:
         google_client.leave_response(
             student_variant=student,
             student_name=student.student_real_name,
-            sheet_name=git_client.get_lab_name(student_nickname=pr_creator),
+            sheet_name=lab_name,
             ai_response=response["comment"],
             last_pr_link=git_client.get_last_pr_link(),
             prompt=prompt_client.context,

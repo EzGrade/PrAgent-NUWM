@@ -57,7 +57,7 @@ class GoogleSheet:
             logger.error("An error occurred while getting sheet '%s': %s", sheet_name, e)
             return pd.DataFrame()
 
-    def get_teacher_prompts(self, lab_number: int) -> List[str]:
+    def get_teacher_prompts(self, lab_name: str) -> List[str]:
         """
         Get teacher prompts for a specific lab.
         """
@@ -65,7 +65,7 @@ class GoogleSheet:
             sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["prompts"])
             data = sheet.get_all_records()
             dataframe = pd.DataFrame(data)
-            prompts = dataframe.iloc[lab_number].tolist()[0]
+            prompts = dataframe.loc[dataframe['lab_name'] == lab_name, 'Prompts'].values[0]
             return prompts.split(";;")
         except Exception as e:
             logger.error("An error occurred while getting teacher prompts: %s", e)
@@ -257,4 +257,18 @@ class GoogleSheet:
             return nicknames
         except Exception as e:
             logger.error("An error occurred while getting all nicknames: %s", e)
+            return []
+
+    def get_all_lab_names(self) -> List[str]:
+        """
+        Get all lab names from the Google Sheet.
+        :return:
+        """
+        try:
+            sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["prompts"])
+            data = sheet.get_all_records()
+            lab_names = [row["lab_name"] for row in data if row.get("lab_name")]
+            return lab_names
+        except Exception as e:
+            logger.error("An error occurred while getting all lab names: %s", e)
             return []
