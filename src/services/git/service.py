@@ -79,11 +79,18 @@ class GitHub:
             logger.debug(f"Getting files recursively from path: {path}, ref: {ref}")
             files = self.repository.get_contents(path, ref=ref)
             context = dict()
+            encodings = ['utf-8', 'latin-1', 'cp1252']
             for file in files:
                 if file.type == "dir":
                     context.update(get_files_recursively(file.path, ref))
                 else:
-                    context[file.path] = file.decoded_content.decode("utf-8")
+                    for encoding in encodings:
+                        try:
+                            content = file.decoded_content.decode(encoding)
+                            context[file.path] = content
+                            break
+                        except UnicodeDecodeError:
+                            continue
             return context
 
         last_pr = self.repository.get_pull(self.last_pr_number)
@@ -151,17 +158,6 @@ class GitHub:
         logger.debug("Getting last PR link")
         link = f"https://github.com/{self.owner}/{self.repo}/pull/{self.last_pr_number}"
         return link
-
-    def get_lab_number(self, student_nickname) -> int:
-        """
-        Get the lab number.
-        :return: The lab number
-        """
-        logger.debug("Getting lab number")
-        lab_name = self.get_lab_name(student_nickname=student_nickname)
-        lab_number = lab_name.split("-")[0]
-        lab_number = int(lab_number) // 10
-        return lab_number
 
 
 if __name__ == "__main__":

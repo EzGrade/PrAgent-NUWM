@@ -32,6 +32,10 @@ def run(owner: str, repository: str) -> bool:
 
         lab_name = git_client.get_lab_name(all_lab_names=google_client.get_all_lab_names())
         pr_creator = git_client.get_student(lab_name=lab_name)
+        if pr_creator not in google_client.get_all_nicknames():
+            logger.error(f"Student with nickname {pr_creator} not found in the roster sheet.")
+            git_client.leave_comment_on_pr(comment="Будь ласка, підв'яжіть свій акаунт на GitHub classroom та зверніться до адміністатора для оновлення інформації. Дякую!", pull_number=git_client.get_last_pr_number())
+            return False
 
         prompts = google_client.get_teacher_prompts(lab_name=lab_name)
 
