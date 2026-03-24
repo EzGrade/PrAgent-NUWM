@@ -132,7 +132,7 @@ class GitHub:
         logger.debug("Getting last commit author")
         repository_name = self.repository.full_name
         _lab_name = repository_name.split("/")[-1]
-        student = lab_name.replace(f"{_lab_name}-", "")
+        student = _lab_name.replace(f"{lab_name}-", "")
         return student
 
     def get_lab_name(self, all_lab_names: List[str]) -> str:

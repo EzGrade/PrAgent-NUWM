@@ -65,7 +65,7 @@ class GoogleSheet:
             sheet = self.spreadsheet.worksheet(config.SHEETS_NAMING["prompts"])
             data = sheet.get_all_records()
             dataframe = pd.DataFrame(data)
-            prompts = dataframe.loc[dataframe['lab_name'] == lab_name, 'Prompts'].values[0]
+            prompts = dataframe.loc[dataframe['lab_name'] == lab_name, 'Prompt'].values[0]
             return prompts.split(";;")
         except Exception as e:
             logger.error("An error occurred while getting teacher prompts: %s", e)
