@@ -82,6 +82,23 @@ class GoogleSheet:
         """
         return self.get_sheet_data(config.SHEETS_NAMING["roster"])
 
+    def get_all_repositories(self, sheet_name: str) -> List[str]:
+        """
+        Get all repositories from the Google Sheet.
+        """
+        try:
+            sheet = self.spreadsheet.worksheet(sheet_name)
+            data = sheet.get_all_records()
+            repositories = [row["Лінк на останній PR"] for row in data if row.get("Лінк на останній PR")]
+            result = []
+            for repo in repositories:
+                temp = repo.split("/")
+                result.append((temp[3], temp[4]))
+            return result
+        except Exception as e:
+            logger.error("An error occurred while getting all repositories: %s", e)
+            return []
+
     def __copy_template_to_new_sheet(self, new_sheet_name: str) -> Worksheet:
         """
         Copy the template sheet to a new sheet.

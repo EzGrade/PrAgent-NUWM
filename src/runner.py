@@ -34,7 +34,9 @@ def run(owner: str, repository: str) -> bool:
         pr_creator = git_client.get_student(lab_name=lab_name)
         if pr_creator not in google_client.get_all_nicknames():
             logger.error(f"Student with nickname {pr_creator} not found in the roster sheet.")
-            git_client.leave_comment_on_pr(comment="Будь ласка, підв'яжіть свій акаунт на GitHub classroom та зверніться до адміністатора для оновлення інформації. Дякую!", pull_number=git_client.get_last_pr_number())
+            git_client.leave_comment_on_pr(
+                comment="Будь ласка, підв'яжіть свій акаунт на GitHub classroom та зверніться до адміністатора для оновлення інформації. Дякую!",
+                pull_number=git_client.get_last_pr_number())
             return False
 
         prompts = google_client.get_teacher_prompts(lab_name=lab_name)
@@ -77,7 +79,21 @@ def run(owner: str, repository: str) -> bool:
         return False
 
 
+def bulk_update():
+    google_client = GoogleSheet()
+    lab_names = google_client.get_all_lab_names()
+    repositories = []
+    for name in lab_names:
+        repositories.extend(google_client.get_all_repositories(sheet_name=name))
+
+    for owner, repository in repositories:
+        run(owner=owner, repository=repository)
+
+
 if __name__ == "__main__":
+    # To run the process for all repositories, uncomment the line below
+    # bulk_update()
+
     success = run(owner=GITHUB_REPOSITORY_OWNER, repository=GITHUB_REPOSITORY_NAME)
     if success:
         logger.info("Process completed successfully.")
