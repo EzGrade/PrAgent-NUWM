@@ -58,7 +58,10 @@ class GitHub:
         installations = self.app_client.get_installations()
         for installation in installations:
             logger.info(f"Installation: {installation}")
-            repo = paginator_to_list(installation.get_repos())[0]
+            repo = paginator_to_list(installation.get_repos())
+            if not repo:
+                continue
+            repo = repo[0]
             owner = repo.owner.login
             name = repo.name
             logger.info(f"Owner: {owner}, Name: {name}")
