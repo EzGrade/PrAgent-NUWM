@@ -1,24 +1,12 @@
 from typing import List, Dict, Union, Optional
+
+from loguru import logger
 from github.File import File
-from github.PaginatedList import PaginatedList
 from github.Repository import Repository
-from github import GithubIntegration, Auth
-import config
-from utils.logger import setup_logger
 
-logger = setup_logger(__name__)
+from src.clients.github import GithubClient
+
 GithubEntity = Union[Repository, File]
-
-
-def paginator_to_list(
-        paginator: PaginatedList[Union[Repository, File]]
-) -> List[GithubEntity]:
-    """
-    Convert paginator to list
-    :param paginator: PaginatedList of Repository or File
-    :return: List of Repository or File
-    """
-    return [obj for obj in paginator]
 
 
 class GitHub:
@@ -28,55 +16,22 @@ class GitHub:
 
     def __init__(
             self,
-            installation_id: Optional[int] = None,
             owner: Optional[str] = None,
             repo: Optional[str] = None
     ):
-        logger.info("Initializing GitHub client")
-        self.owner = owner
-        self.repo = repo
+        self.github_client = GithubClient()
 
-        self.auth = Auth.AppAuth(
-            app_id=config.GITHUB_APP_ID,
-            private_key=config.GITHUB_PRIVATE_KEY,
-        )
+        self.__owner = owner
+        self.__repo = repo
 
-        self.app_client = GithubIntegration(auth=self.auth)
-
-        self.installation_id = installation_id or self.get_installation_id()
-        self.client = self.app_client.get_github_for_installation(installation_id=self.installation_id)
-        self.repository = self.client.get_repo(f"{owner}/{repo}")
+        self.repository = self.github_client.get_repo(owner, repo)
         self.last_pr_number = self.get_last_pr_number()
-        logger.info("GitHub client initialized")
-
-    def get_installation_id(self) -> int:
-        """
-        Get installation id for the repository
-        :return: installation id
-        """
-        logger.debug("Getting installation ID")
-        installations = self.app_client.get_installations()
-        for installation in installations:
-            logger.info(f"Installation: {installation}")
-            repo = paginator_to_list(installation.get_repos())
-            if not repo:
-                continue
-            repo = repo[0]
-            owner = repo.owner.login
-            name = repo.name
-            logger.info(f"Owner: {owner}, Name: {name}")
-            if owner == self.owner:
-                logger.debug(f"Found installation ID: {installation.id}")
-                return installation.id
-        logger.error("Installation not found")
-        raise RuntimeError("Installation not found")
 
     def get_pr_files_content(self) -> Dict[str, str]:
         """
         Get content of the files in the last PR
         :return: Dictionary with file paths as keys and file contents as values
         """
-        logger.debug("Getting PR files content")
 
         def get_files_recursively(path: str, ref: str) -> Dict[str, str]:
             logger.debug(f"Getting files recursively from path: {path}, ref: {ref}")
@@ -110,7 +65,7 @@ class GitHub:
         logger.info(f"Last PR number: {pr_number[0].number}")
         return pr_number[0].number
 
-    def leave_comment_on_pr(
+    def comment_pr(
             self,
             comment: str,
             pull_number: Optional[int] = None
@@ -159,10 +114,5 @@ class GitHub:
         :return: The link to the last PR
         """
         logger.debug("Getting last PR link")
-        link = f"https://github.com/{self.owner}/{self.repo}/pull/{self.last_pr_number}"
+        link = f"https://github.com/{self.__owner}/{self.__repo}/pull/{self.last_pr_number}"
         return link
-
-
-if __name__ == "__main__":
-    github = GitHub(owner="nuwm-lab", repo="Simple-Test")
-    github.leave_comment_on_pr("some_comment")

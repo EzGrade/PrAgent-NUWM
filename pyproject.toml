@@ -1,0 +1,63 @@
+[project]
+name = "pr-agent-nuwm"
+version = "0.1.0"
+description = "PR Agent for Nuwm"
+authors = [
+    {name = "Andrii Borychevskyi",email = "borychevskyi_ak23@nuwm.edu.ua"}
+]
+readme = "README.md"
+
+requires-python = ">=3.12,<3.14.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+opencv-python = "^4.12.0.88"
+google-auth = "^2.41.1"
+google-auth-oauthlib = "^1.2.2"
+gspread = "^6.2.1"
+httpx = "^0.28.1"
+isort = "^6.1.0"
+pandas = "^2.3.3"
+pydantic = "^2.11.9"
+pygithub = "^2.8.1"
+pyjwt = "^2.10.1"
+requests = "^2.32.5"
+dotenv = "^0.9.9"
+openai = "^2.0.1"
+pydantic-settings = "^2.11.0"
+loguru = "^0.7.3"
+jsonref = "^1.1.0"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = [".venv", "tests"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+check_untyped_defs = true
+explicit_package_bases = true
+mypy_path = "."
+exclude = "(^alembic/|^venv/|^\\.venv/|^tests/|^modules/)"
+follow_imports = "silent"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["untyped_package.*"]
+follow_untyped_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true

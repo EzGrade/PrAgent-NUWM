@@ -1,81 +1,19 @@
-"""
-AI Service
-"""
+from loguru import logger
 
-from typing import List, Dict
-import openai
-import re
-
-import config
-from utils.logger import setup_logger
-
-logger = setup_logger(__name__)
+from src.clients.openai import OpenAIClient
+from src.models.llm.tools import ReviewCodeTool
 
 
 class AiRequest:
-    """
-    AI Request service
-    """
+    def __init__(self):
+        self.client = OpenAIClient()
 
-    def __init__(
-            self,
-            context: List[Dict[str, str]],
-            model: str = config.OPENAI_MODEL,
-    ):
-        """
-        Initialize AI Request service
-        :param context:
-        :param model:
-        """
-        logger.debug("Initializing AiRequest with model: %s", model)
-        self.context = context
-        self.model = model
+    def send_message(self, context: list[dict[str, str]]) -> ReviewCodeTool:
+        response = self.client.send_message(context, tools=[ReviewCodeTool])
+        tool_call = response.tool_calls[0].tool_input
 
-        self.client = self.get_client()
-        logger.debug("OpenAI client initialized")
-
-    @staticmethod
-    def get_client() -> openai.OpenAI:
-        """
-        Get OpenAI client
-        :return:
-        """
-        logger.debug("Getting OpenAI client")
-        return openai.OpenAI(
-            api_key=config.OPENAI_API_KEY,
-        )
-
-    @staticmethod
-    def __parse_response(response: str) -> Dict[str, str]:
-        """
-        Parse response from OpenAI
-        :param response: OpenAI response
-        :return: Parsed response
-        """
-        logger.debug("Parsing response from OpenAI")
-        pattern = r'\[Rating\]\(([^)]+)\)'
-        match = re.findall(pattern, response)
-        rating = None
-        if match:
-            rating = match[0]
-            response = re.sub(pattern, rating, response)
-        return {
-            "comment": response.strip(),
-            "rating": rating
-        }
-
-    def get_response(
-            self,
-    ) -> str:
-        """
-        Get response from OpenAI
-        :return response: OpenAI response
-        """
-        logger.debug("Getting response from OpenAI with context: %s", self.context)
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=self.context
-        )
-        logger.debug("Received response from OpenAI")
-        response = response.choices[0].message.content
-        return self.__parse_response(response)
+        try:
+            return ReviewCodeTool.model_validate(tool_call)
+        except Exception as e:
+            logger.error(f"Error parsing review: {e}")
+            raise

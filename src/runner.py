@@ -2,17 +2,14 @@
 This is the main runner file that will be executed by the GitHub action.
 """
 import pandas as pd
-import logging
+from loguru import logger
 
-from config import GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME
 from services.ai.service import AiRequest
 from services.git.service import GitHub
 from services.google.service import GoogleSheet
 from services.prompt.service import PromptGenerator
 from services.student_variant.service import StudentVariant
-from utils.logger import setup_logger
-
-logger = setup_logger(__name__, level=logging.DEBUG)
+from src.models.llm.tools import ReviewCodeTool
 
 
 def run(owner: str, repository: str) -> bool:
@@ -34,12 +31,10 @@ def run(owner: str, repository: str) -> bool:
         pr_creator = git_client.get_student(lab_name=lab_name)
         if pr_creator not in google_client.get_all_nicknames():
             logger.error(f"Student with nickname {pr_creator} not found in the roster sheet.")
-            git_client.leave_comment_on_pr(
+            git_client.comment_pr(
                 comment="Будь ласка, підв'яжіть свій акаунт на GitHub classroom та зверніться до адміністатора для оновлення інформації. Дякую!",
                 pull_number=git_client.get_last_pr_number())
             return False
-
-        prompts = google_client.get_teacher_prompts(lab_name=lab_name)
 
         student = StudentVariant(
             student_username=pr_creator,
@@ -50,32 +45,37 @@ def run(owner: str, repository: str) -> bool:
 
         files.pop("README.md", None)
 
-        prompt_client = PromptGenerator(
+        lab_prompt = google_client.get_teacher_prompts(name=lab_name)
+
+        prompt_service = PromptGenerator(
             student_assignment=student.student_assignment,
             context_prompt=files,
-            teacher_prompts=prompts
+            teacher_prompts=lab_prompt
         )
 
-        context = prompt_client.get_prompt()
+        context = prompt_service.get_prompt()
 
-        ai_client = AiRequest(context=context)
-        response = ai_client.get_response()
+        ai_client = AiRequest()
+        response: ReviewCodeTool = ai_client.send_message(context=context)
 
-        git_client.leave_comment_on_pr(comment=response["comment"])
+        git_client.comment_pr(
+            comment=response.message,
+            pull_number=git_client.get_last_pr_number()
+        )
 
         google_client.leave_response(
             student_variant=student,
             student_name=student.student_real_name,
             sheet_name=lab_name,
-            ai_response=response["comment"],
+            ai_response=response.message,
             last_pr_link=git_client.get_last_pr_link(),
-            prompt=prompt_client.context,
-            summary=response["rating"]
+            prompt=prompt_service.context,
+            summary=f"{response.rating}/5.0"
         )
         return True
 
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
+        logger.exception(f"An error occurred: {e}")
         return False
 
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     # To run the process for all repositories, uncomment the line below
     # bulk_update()
 
-    success = run(owner=GITHUB_REPOSITORY_OWNER, repository=GITHUB_REPOSITORY_NAME)
+    success = run(owner="nuwm-lab", repository="30-array-of-objects-Ivanvasylcuk")
     if success:
         logger.info("Process completed successfully.")
     else:
