@@ -12,12 +12,15 @@ jobs:
       - name: pr-agent-nuwm
         uses: EzGrade/Pr-Agent-NUWM@main
         env:
-          APP_ID: ${{ secrets.APP_ID }}
+          GIT_APP_ID: ${{ secrets.APP_ID }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          GIT_REPOSITORY: ${{ github.repository }}
+          GIT_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
-          INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
+          GIT_INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
+          GOOGLE_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_CREDENTIALS_CONTENT }}
+          GOOGLE_SHEETS_NAMING: ${{ secrets.GOOGLE_SHEETS_NAMING }}
+          GOOGLE_SPREADSHEET_URL: ${{ secrets.GOOGLE_SPREADSHEET_URL }}
 
 

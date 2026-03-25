@@ -5,10 +5,14 @@ from .base import BaseApplicationConfig
 
 
 class GitHubConfig(BaseApplicationConfig):
-    GIT_APP_ID: int = Field(..., description="GitHub App ID")
-    GIT_INSTALLATION_ID: int | None = Field(default=None, description="GitHub Installation ID")
-    GITHUB_REPOSITORY: str = Field(..., description="GitHub Repository", alias="GITHUB_REPOSITORY")
-    GIT_PRIVATE_KEY: str = Field(..., description="GitHub Private Key")
+    APP_ID: int = Field(..., description="GitHub App ID")
+    INSTALLATION_ID: int | None = Field(default=None, description="GitHub Installation ID")
+    REPOSITORY: str = Field(..., description="GitHub Repository", alias="GITHUB_REPOSITORY")
+    PRIVATE_KEY: str = Field(..., description="GitHub Private Key")
+
+    model_config = SettingsConfigDict(
+        env_prefix=""
+    )
 
     @model_validator(mode="before")
     def validate_installation_id(cls, values):
