@@ -11,7 +11,7 @@ class GitHubConfig(BaseApplicationConfig):
     PRIVATE_KEY: str = Field(..., description="GitHub Private Key")
 
     model_config = SettingsConfigDict(
-        env_prefix="GITHUB_"
+        env_prefix="GIT_"
     )
 
     @model_validator(mode="before")
