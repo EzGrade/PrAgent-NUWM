@@ -9,7 +9,7 @@ from services.git.service import GitHub
 from services.google.service import GoogleSheet
 from services.prompt.service import PromptGenerator
 from services.student_variant.service import StudentVariant
-from src.models.llm.tools import ReviewCodeTool
+from models.llm.tools import ReviewCodeTool
 
 
 def run(owner: str, repository: str) -> bool:

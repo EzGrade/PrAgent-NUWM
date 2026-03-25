@@ -4,8 +4,8 @@ from loguru import logger
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 
-from ..configs.openai import OpenAIConfig
-from ..models.llm.tools import BaseTool, LLMResponse, ToolCall
+from configs.openai import OpenAIConfig
+from models.llm.tools import BaseTool, LLMResponse, ToolCall
 
 
 class OpenAIClient:

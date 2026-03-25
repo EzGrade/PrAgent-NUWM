@@ -1,4 +1,5 @@
 #!/bin/sh
 
-python3 /app/src/runner.py
-
+export PYTHONPATH="/app/src:$PYTHONPATH"
+cd /app/src
+python3 runner.py

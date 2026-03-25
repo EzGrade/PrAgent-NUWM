@@ -1,7 +1,7 @@
 from loguru import logger
 
-from ...clients.openai import OpenAIClient
-from ...models.llm.tools import ReviewCodeTool
+from clients.openai import OpenAIClient
+from models.llm.tools import ReviewCodeTool
 
 
 class AiRequest:
