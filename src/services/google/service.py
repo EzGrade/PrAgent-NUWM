@@ -3,11 +3,11 @@ import pandas as pd
 
 from loguru import logger
 
-from src.services.student_variant.service import StudentVariant
+from ..student_variant.service import StudentVariant
 
-from src.clients.google import GoogleSheetsClient
-from src.models.google.entity import ReviewModel
-from src.utils.enums.sheets import SheetsNamingEnum
+from ...clients.google import GoogleSheetsClient
+from ...models.google.entity import ReviewModel
+from ...utils.enums.sheets import SheetsNamingEnum
 
 
 class GoogleSheet:

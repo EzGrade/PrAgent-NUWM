@@ -5,8 +5,8 @@ import pandas as pd
 from gspread import Worksheet
 from loguru import logger
 
-from src.configs.google import GoogleSheetsConfig
-from src.utils.enums.sheets import SheetsNamingEnum
+from ..configs.google import GoogleSheetsConfig
+from ..utils.enums.sheets import SheetsNamingEnum
 
 
 class GoogleSheetsClient:

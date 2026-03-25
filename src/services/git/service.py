@@ -4,7 +4,7 @@ from loguru import logger
 from github.File import File
 from github.Repository import Repository
 
-from src.clients.github import GithubClient
+from ...clients.github import GithubClient
 
 GithubEntity = Union[Repository, File]
 

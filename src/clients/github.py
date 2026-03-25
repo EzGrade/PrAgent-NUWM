@@ -1,8 +1,8 @@
 from github import GithubIntegration, Auth
 from github.Repository import Repository
 
-from src.configs.github import GitHubConfig
-from src.utils.helpers.paginator import to_list
+from ..configs.github import GitHubConfig
+from ..utils.helpers.paginator import to_list
 
 
 class GithubClient:

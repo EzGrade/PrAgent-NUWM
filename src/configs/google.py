@@ -5,7 +5,7 @@ from pydantic_settings import SettingsConfigDict
 from loguru import logger
 
 from .base import BaseApplicationConfig
-from src.utils.enums.sheets import SheetsNamingEnum
+from ..utils.enums.sheets import SheetsNamingEnum
 
 
 class GoogleSheetsConfig(BaseApplicationConfig):
