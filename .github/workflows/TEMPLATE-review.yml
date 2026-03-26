@@ -1,3 +1,20 @@
+# 📋 TEMPLATE: PR Agent Workflow для репозиторіїв студентів
+# 
+# Інструкція:
+# 1. Скопіюйте цей файл до вашого репозиторію як `.github/workflows/review.yml`
+# 2. Переконайтеся, що в Settings → Secrets and variables → Actions додані всі необхідні секрети
+# 3. Коли створюєте Pull Request, бот автоматично перевірить ваш код
+#
+# Необхідні секрети (налаштовуються адміністратором):
+# - APP_ID
+# - PRIVATE_KEY
+# - INSTALLATION_ID (опціонально)
+# - OPENAI_API_KEY
+# - OPENAI_MODEL
+# - GOOGLE_CREDENTIALS_CONTENT
+# - SPREADSHEET_URL
+# - SHEETS_NAMING
+
 name: PR Agent for NUWM
 
 on:
@@ -22,6 +39,3 @@ jobs:
           GOOGLE_SPREADSHEET_URL: ${{ secrets.SPREADSHEET_URL }}
           GOOGLE_SHEETS_NAMING: ${{ secrets.SHEETS_NAMING }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
