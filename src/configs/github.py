@@ -1,4 +1,4 @@
-from pydantic import Field, model_validator, AliasChoices
+from pydantic import Field, model_validator, field_validator, AliasChoices
 from pydantic_settings import SettingsConfigDict
 
 from .base import BaseApplicationConfig
@@ -30,30 +30,35 @@ class GitHubConfig(BaseApplicationConfig):
         env_prefix=""  # Без префіксу, бо використовуємо AliasChoices
     )
 
-    @model_validator(mode="before")
-    def validate_fields(cls, values):
-        # Перевіряємо INSTALLATION_ID
-        installation_id = values.get("INSTALLATION_ID")
-        if not installation_id or installation_id == "":
-            values["INSTALLATION_ID"] = None
+    @field_validator("INSTALLATION_ID", mode="before")
+    @classmethod
+    def validate_installation_id(cls, value):
+        """Конвертуємо порожній рядок в None для INSTALLATION_ID"""
+        if value == "" or value is None:
+            return None
+        return value
 
-        # Перевіряємо APP_ID - не може бути порожнім
-        app_id = values.get("APP_ID")
-        if app_id == "":
+    @field_validator("APP_ID", mode="before")
+    @classmethod
+    def validate_app_id(cls, value):
+        """Перевіряємо, що APP_ID не порожній"""
+        if value == "":
             raise ValueError(
-                "APP_ID cannot be empty. Please set the APP_ID secret in your repository settings. "
-                "Go to Settings → Secrets and variables → Actions → Repository secrets"
+                "APP_ID cannot be empty. Please set the GIT_APP_ID secret in your organization settings. "
+                "Go to https://github.com/organizations/nuwm-lab/settings/secrets/actions"
             )
+        return value
 
-        # Перевіряємо PRIVATE_KEY - не може бути порожнім
-        private_key = values.get("PRIVATE_KEY")
-        if private_key == "":
+    @field_validator("PRIVATE_KEY", mode="before")
+    @classmethod
+    def validate_private_key_empty(cls, value):
+        """Перевіряємо, що PRIVATE_KEY не порожній"""
+        if value == "":
             raise ValueError(
-                "PRIVATE_KEY cannot be empty. Please set the PRIVATE_KEY secret in your repository settings. "
-                "Go to Settings → Secrets and variables → Actions → Repository secrets"
+                "PRIVATE_KEY cannot be empty. Please set the GIT_PRIVATE_KEY secret in your organization settings. "
+                "Go to https://github.com/organizations/nuwm-lab/settings/secrets/actions"
             )
-
-        return values
+        return value
 
     @model_validator(mode="after")
     def load_private_key(self):
