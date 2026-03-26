@@ -7,15 +7,15 @@ The bot supports **BOTH** naming conventions for maximum compatibility!
 ### ✅ Option 1: With Prefixes (Recommended for clarity)
 ```yaml
 env:
-  GIT_APP_ID: ${{ secrets.APP_ID }}
-  GIT_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-  GIT_INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
+  GIT_APP_ID: ${{ secrets.GIT_APP_ID }}
+  GIT_PRIVATE_KEY: ${{ secrets.GIT_PRIVATE_KEY }}
+  GIT_INSTALLATION_ID: ${{ secrets.GIT_INSTALLATION_ID }}
   GIT_REPOSITORY: ${{ github.repository }}
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
   OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
   GOOGLE_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_CREDENTIALS_CONTENT }}
-  GOOGLE_SPREADSHEET_URL: ${{ secrets.SPREADSHEET_URL }}
-  GOOGLE_SHEETS_NAMING: ${{ secrets.SHEETS_NAMING }}
+  GOOGLE_SPREADSHEET_URL: ${{ secrets.GOOGLE_SPREADSHEET_URL }}
+  GOOGLE_SHEETS_NAMING: ${{ secrets.GOOGLE_SHEETS_NAMING }}
 ```
 
 ### ✅ Option 2: Without Prefixes (Legacy support)

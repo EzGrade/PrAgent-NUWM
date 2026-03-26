@@ -76,12 +76,12 @@ jobs:
 
 ### 2. Налаштуйте GitHub Secrets
 
-У репозиторії (Settings → Secrets and variables → Actions) додайте наступні секрети:
+У **організації** (Settings → Secrets and variables → Actions) додайте наступні секрети:
 
 #### GitHub App секрети:
-- `APP_ID` - ID вашого GitHub App
-- `PRIVATE_KEY` - Приватний ключ GitHub App
-- `INSTALLATION_ID` - (опціонально) ID інсталяції
+- `GIT_APP_ID` - ID вашого GitHub App
+- `GIT_PRIVATE_KEY` - Приватний ключ GitHub App
+- `GIT_INSTALLATION_ID` - (опціонально) ID інсталяції
 
 #### OpenAI секрети:
 - `OPENAI_API_KEY` - API ключ OpenAI
@@ -89,8 +89,10 @@ jobs:
 
 #### Google Sheets секрети:
 - `GOOGLE_CREDENTIALS_CONTENT` - JSON з credentials для Google Sheets API
-- `SPREADSHEET_URL` - URL таблиці Google Sheets
-- `SHEETS_NAMING` - JSON з назвами аркушів
+- `GOOGLE_SPREADSHEET_URL` - URL таблиці Google Sheets
+- `GOOGLE_SHEETS_NAMING` - JSON з назвами аркушів
+
+**Важливо:** Налаштовуйте секрети на рівні **організації**, щоб вони автоматично були доступні для всіх репозиторіїв студентів!
 
 ---
 
