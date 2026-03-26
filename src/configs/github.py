@@ -31,9 +31,27 @@ class GitHubConfig(BaseApplicationConfig):
     )
 
     @model_validator(mode="before")
-    def validate_installation_id(cls, values):
-        if not values.get("INSTALLATION_ID"):
+    def validate_fields(cls, values):
+        # Перевіряємо INSTALLATION_ID
+        installation_id = values.get("INSTALLATION_ID")
+        if not installation_id or installation_id == "":
             values["INSTALLATION_ID"] = None
+
+        # Перевіряємо APP_ID - не може бути порожнім
+        app_id = values.get("APP_ID")
+        if app_id == "":
+            raise ValueError(
+                "APP_ID cannot be empty. Please set the APP_ID secret in your repository settings. "
+                "Go to Settings → Secrets and variables → Actions → Repository secrets"
+            )
+
+        # Перевіряємо PRIVATE_KEY - не може бути порожнім
+        private_key = values.get("PRIVATE_KEY")
+        if private_key == "":
+            raise ValueError(
+                "PRIVATE_KEY cannot be empty. Please set the PRIVATE_KEY secret in your repository settings. "
+                "Go to Settings → Secrets and variables → Actions → Repository secrets"
+            )
 
         return values
 
