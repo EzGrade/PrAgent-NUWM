@@ -1,6 +1,7 @@
 """
 This is the main runner file that will be executed by the GitHub action.
 """
+import os
 import pandas as pd
 from loguru import logger
 
@@ -91,10 +92,24 @@ def bulk_update():
 
 
 if __name__ == "__main__":
+    # Get repository from environment variable (when run by GitHub Actions)
+    # or use default for local testing
+    github_repository = os.getenv("GITHUB_REPOSITORY", "nuwm-lab/30-array-of-objects-Ivanvasylcuk")
+    
+    logger.info(f"Starting PR Agent for repository: {github_repository}")
+    
+    # Split owner/repo
+    try:
+        owner, repository = github_repository.split("/")
+    except ValueError:
+        logger.error(f"Invalid GITHUB_REPOSITORY format: {github_repository}")
+        logger.error("Expected format: owner/repository")
+        exit(1)
+    
     # To run the process for all repositories, uncomment the line below
     # bulk_update()
 
-    success = run(owner="nuwm-lab", repository="30-array-of-objects-Ivanvasylcuk")
+    success = run(owner=owner, repository=repository)
     if success:
         logger.info("Process completed successfully.")
     else:
