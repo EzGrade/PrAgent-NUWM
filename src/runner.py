@@ -93,8 +93,10 @@ def bulk_update():
 if __name__ == "__main__":
     # To run the process for all repositories, uncomment the line below
     # bulk_update()
+    from src.configs.github import GitHubConfig
 
-    success = run(owner="nuwm-lab", repository="30-array-of-objects-Ivanvasylcuk")
+    _owner, _repo = GitHubConfig().REPOSITORY.split("/")
+    success = run(owner=_owner, repository=_repo)
     if success:
         logger.info("Process completed successfully.")
     else:
