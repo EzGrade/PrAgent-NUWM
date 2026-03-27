@@ -4,6 +4,7 @@ This is the main runner file that will be executed by the GitHub action.
 import pandas as pd
 from loguru import logger
 
+from configs.github import GitHubConfig
 from services.ai.service import AiRequest
 from services.git.service import GitHub
 from services.google.service import GoogleSheet
@@ -93,7 +94,6 @@ def bulk_update():
 if __name__ == "__main__":
     # To run the process for all repositories, uncomment the line below
     # bulk_update()
-    from src.configs.github import GitHubConfig
 
     _owner, _repo = GitHubConfig().REPOSITORY.split("/")
     success = run(owner=_owner, repository=_repo)
