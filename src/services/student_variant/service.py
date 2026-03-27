@@ -57,8 +57,15 @@ class StudentVariant:
         """
         try:
             logger.debug("Getting student real name")
+            logger.debug(f"Looking for github_username: '{self.student_username}'")
             student_row = self.roster_sheet.loc[self.roster_sheet['github_username'] == self.student_username]
-            student_real_name = student_row['identifier'].values[0] if not student_row.empty else None
+            logger.debug(f"Found {len(student_row)} matching rows")
+            
+            if student_row.empty:
+                logger.warning(f"Student '{self.student_username}' not found in roster sheet!")
+                return None
+                
+            student_real_name = student_row['identifier'].values[0]
             student_real_name = ' '.join(student_real_name.split()) if student_real_name else None
             logger.info(f"Got student real name: {student_real_name}")
             return student_real_name

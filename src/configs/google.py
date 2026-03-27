@@ -1,6 +1,6 @@
 from json import loads
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, AliasChoices
 from pydantic_settings import SettingsConfigDict
 from loguru import logger
 
@@ -9,12 +9,24 @@ from utils.enums.sheets import SheetsNamingEnum
 
 
 class GoogleSheetsConfig(BaseApplicationConfig):
-    CREDENTIALS_CONTENT: str | dict = Field(..., description="Google credentials content")
-    SPREADSHEET_URL: str = Field(..., description="Google Spreadsheet URL")
-    SHEETS_NAMING: dict = Field(..., description="Google Sheets naming")
+    CREDENTIALS_CONTENT: str | dict = Field(
+        ..., 
+        description="Google credentials content",
+        validation_alias=AliasChoices("GOOGLE_CREDENTIALS_CONTENT", "CREDENTIALS_CONTENT")
+    )
+    SPREADSHEET_URL: str = Field(
+        ..., 
+        description="Google Spreadsheet URL",
+        validation_alias=AliasChoices("GOOGLE_SPREADSHEET_URL", "SPREADSHEET_URL")
+    )
+    SHEETS_NAMING: dict = Field(
+        ..., 
+        description="Google Sheets naming",
+        validation_alias=AliasChoices("GOOGLE_SHEETS_NAMING", "SHEETS_NAMING")
+    )
 
     model_config = SettingsConfigDict(
-        env_prefix="GOOGLE_"
+        env_prefix=""  # Без префіксу, бо використовуємо AliasChoices
     )
 
     @model_validator(mode="before")

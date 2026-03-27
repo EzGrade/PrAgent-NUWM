@@ -87,10 +87,14 @@ class GitHub:
         Get the author of the last commit.
         :return: The username or the email of the author of the last commit
         """
-        logger.debug("Getting last commit author")
+        logger.debug("Getting student username from repository name")
         repository_name = self.repository.full_name
         _lab_name = repository_name.split("/")[-1]
+        logger.debug(f"Repository name: {repository_name}")
+        logger.debug(f"Extracted repo suffix: {_lab_name}")
+        logger.debug(f"Lab name to remove: {lab_name}")
         student = _lab_name.replace(f"{lab_name}-", "")
+        logger.info(f"Extracted student username: {student}")
         return student
 
     def get_lab_name(self, all_lab_names: List[str]) -> str:
@@ -101,11 +105,17 @@ class GitHub:
         logger.debug("Getting lab name")
         repository_name = self.repository.full_name
         lab_name = repository_name.split("/")[-1]
+        logger.debug(f"Repository full name: {repository_name}")
+        logger.debug(f"Initial lab_name from repo: {lab_name}")
+        logger.debug(f"Available lab names: {all_lab_names}")
+        
         for _lab_name in all_lab_names:
             if _lab_name in lab_name:
+                logger.debug(f"Found matching lab name: {_lab_name}")
                 lab_name = _lab_name
                 break
-        logger.info(f"Lab name: {lab_name}")
+        
+        logger.info(f"Final lab name: {lab_name}")
         return lab_name
 
     def get_last_pr_link(self) -> str:
