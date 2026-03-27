@@ -152,9 +152,15 @@ class GoogleSheet:
             logger.debug(data.to_string())
             found, row_number = self.__get_student_row(data, student_name)
             if not found:
+                logger.warning(f"Student '{student_name}' not found in sheet '{sheet_name}', inserting...")
                 self.__insert_new_student(student_variant, sheet_name)
+                # Re-read data after insertion
                 data = pd.DataFrame(sheet.get_all_records())
-                _, row_number = self.__get_student_row(data, student_name)
+                found_after_insert, row_number = self.__get_student_row(data, student_name)
+                if not found_after_insert:
+                    logger.error(f"Failed to insert student '{student_name}' into sheet '{sheet_name}'")
+                    return False
+                logger.info(f"Successfully inserted student '{student_name}' at row {row_number}")
             attempts = self.__get_student_attempts(data, student_name) + 1
             date = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
             self.__update_student_data(
@@ -181,14 +187,19 @@ class GoogleSheet:
         try:
             # Check if DataFrame is empty or doesn't have the expected column
             if data.empty or 'ПІБ' not in data.columns:
+                logger.warning("DataFrame is empty or missing 'ПІБ' column")
                 return False, 1
 
             students = data['ПІБ'].tolist()
+            logger.debug(f"Looking for student '{student_name}' in {len(students)} rows")
+            
             if student_name in students:
                 row_number = students.index(student_name) + 1
+                logger.debug(f"Found student '{student_name}' at row {row_number}")
                 return True, row_number
             else:
                 row_number = len(students) + 1
+                logger.warning(f"Student '{student_name}' not found. Would be inserted at row {row_number}")
                 return False, row_number
         except Exception as e:
             logger.error(f"An error occurred while getting student row: {e}")
@@ -249,11 +260,12 @@ class GoogleSheet:
         """
         Insert a new student into the Google Sheet.
         """
-        logger.info("Inserting new student into the sheet")
+        logger.info(f"Inserting new student '{student_variant.student_real_name}' into sheet '{sheet_name}'")
         try:
             sheet = self.__client.spreadsheet.worksheet(sheet_name)
             records = sheet.get_all_records()
             if not records:
+                logger.info("Sheet is empty, creating first row")
                 model = ReviewModel(
                     variant_number=student_variant.student_variant,
                     student_name=student_variant.student_real_name,
@@ -268,9 +280,12 @@ class GoogleSheet:
                 )
                 data = pd.DataFrame(model.to_pd_dict())
                 self.__client.write_dataframe_to_sheet(sheet_name, data)
+                logger.info(f"Successfully inserted student '{student_variant.student_real_name}' as first row")
                 return True
 
             data = pd.DataFrame(sheet.get_all_records())
+            logger.debug(f"Current sheet has {len(data)} rows")
+            
             model = ReviewModel(
                 variant_number=student_variant.student_variant,
                 student_name=student_variant.student_real_name,
@@ -285,7 +300,10 @@ class GoogleSheet:
             )
             new_student = pd.DataFrame(model.to_pd_dict())
             data = pd.concat([data, new_student], ignore_index=True)
+            logger.debug(f"After concat, sheet has {len(data)} rows")
+            
             self.__client.write_dataframe_to_sheet(sheet_name, data)
+            logger.info(f"Successfully appended student '{student_variant.student_real_name}' to sheet")
             return True
 
         except Exception as e:
